@@ -14,7 +14,10 @@ import android.os.Bundle;
 import android.view.View;
 
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
@@ -33,9 +36,25 @@ public class MainActivity extends AppCompatActivity {
         saveSpotButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                saveSpot();
+                saveSpotWrapper();
             }
         });
+    }
+
+    public void saveSpotWrapper() {
+        Thread thread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try  {
+                    saveSpot();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        thread.start();
     }
 
     public boolean saveSpot() {
@@ -46,13 +65,13 @@ public class MainActivity extends AppCompatActivity {
 //        double longitude = location.getLongitude();
 //        double latitude = location.getLatitude();
 
-        String data = "{\"lat\":0.852792909818,\"lng\":-0.78900363502305,\"world_id\":1,\"room_name\":\"android\",\"world_key\":\"1\"}: ";
+        String data = "{\"lat\":0.075375179558346,\"lng\":-0.8828125,\"world_id\":1,\"room_name\":\"test 2\",\"world_key\":\"1\"}";
 
         try {
             Log.d("debug", "start try");
-//            URL url = new URL("https://bigworld.io/room/create");
-            URL url = new URL("https://www.google.com/");
+            URL url = new URL("https://bigworld.io/room/create");
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setRequestMethod("POST");
             Log.d("debug", "before out");
             Log.d("debug", urlConnection.getOutputStream().toString());
             OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
@@ -65,13 +84,29 @@ public class MainActivity extends AppCompatActivity {
             out.close();
 
             Log.d("debug", "before connect");
-            urlConnection.connect();
+            // urlConnection.connect();
+            Log.d("debug", "after connect");
+
+            // Get response
+            Log.d("debug", urlConnection.getInputStream().toString());
+            BufferedReader br = new BufferedReader(new InputStreamReader((urlConnection.getInputStream())));
+//            BufferedReader br = new BufferedReader(new InputStreamReader((urlConnection.getErrorStream())));
+            StringBuilder sb = new StringBuilder();
+            String output;
+            while ((output = br.readLine()) != null) {
+                sb.append(output);
+            }
+            Log.d("debug", sb.toString());
+
+            Log.d("debug", "end");
         } catch (Exception e) {
             Log.d("debug", "save spot failed");
             System.out.println(e.getMessage());
+            System.out.println(e.toString());
             return false;
         }
 
         return true;
     }
+
 }
